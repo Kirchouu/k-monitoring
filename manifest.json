@@ -1,0 +1,44 @@
+{
+  "id": "k-monitoring",
+  "name": "K Monitoring",
+  "version": "0.1.0",
+  "minNoctaliaVersion": "4.6.0",
+  "author": "kirchou",
+  "license": "MIT",
+  "repository": "",
+  "description": "Bar widget showing CPU / memory usage or GPU temperature. Click to open a process list panel with CPU/Mem/GPU gauges. Uses dgop (same backend as DankMaterialShell) for temps and accurate stats, with a /proc fallback if dgop is missing. Add it multiple times (Memory, CPU, GPU) for several widgets.",
+  "tags": ["Bar", "Panel", "System"],
+  "entryPoints": {
+    "main": "Main.qml",
+    "barWidget": "BarWidget.qml",
+    "panel": "Panel.qml",
+    "settings": "Settings.qml"
+  },
+  "requires": ["dgop"],
+  "dependencies": {
+    "plugins": []
+  },
+  "metadata": {
+    "defaultSettings": {
+      "showCpu": false,
+      "showCpuTemp": false,
+      "showMemory": true,
+      "showGpu": false,
+      "combined": false,
+      "showIcon": true,
+      "boldText": true,
+      "iconCpu": "",
+      "iconCpuTemp": "",
+      "iconMemory": "",
+      "iconGpu": "",
+      "iconColor": "none",
+      "textColor": "none",
+      "refreshInterval": 3,
+      "processLimit": 40,
+      "showFilters": true,
+      "fullWindowBg": "#0f0f13",
+      "fullCardBg": "#1e1e25",
+      "fullOpacity": 1
+    }
+  }
+}

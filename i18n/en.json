@@ -1,0 +1,116 @@
+{
+  "widget": {
+    "loading": "Loading…"
+  },
+  "common": {
+    "close": "Close"
+  },
+  "panel": {
+    "title": "Processes",
+    "search": "Search…"
+  },
+  "full": {
+    "title": "System Monitor",
+    "swap": "Swap",
+    "network": "Network",
+    "disk": "Disk",
+    "diskIo": "Disk I/O",
+    "read": "Read",
+    "write": "Write",
+    "mounts": "Mount points",
+    "sysInfo": "System information",
+    "hostname": "Hostname",
+    "distro": "Distribution",
+    "kernel": "Kernel",
+    "arch": "Architecture",
+    "ram": "RAM",
+    "loadavg": "Load average",
+    "uptime": "Uptime",
+    "threads": "threads",
+    "gpuMon": "GPU monitoring",
+    "noGpu": "No GPU detected"
+  },
+  "tab": {
+    "processes": "Processes",
+    "performance": "Performance",
+    "disks": "Disks",
+    "system": "System"
+  },
+  "filter": {
+    "all": "All",
+    "user": "User",
+    "system": "System"
+  },
+  "detail": {
+    "command": "Full command:",
+    "ppid": "PPID:",
+    "mem": "Mem:"
+  },
+  "ctx": {
+    "copyPid": "Copy PID",
+    "copyName": "Copy name",
+    "copyCommand": "Copy full command",
+    "kill": "Kill process",
+    "forceKill": "Force kill (SIGKILL)"
+  },
+  "stats": {
+    "cpu": "CPU",
+    "cputemp": "CPU temp",
+    "memory": "Memory",
+    "gpu": "GPU",
+    "procs": "processes",
+    "uptime": "uptime"
+  },
+  "sort": {
+    "cpu": "CPU",
+    "memory": "Memory"
+  },
+  "col": {
+    "name": "Name",
+    "cpu": "CPU",
+    "memory": "Memory",
+    "pid": "PID"
+  },
+  "action": {
+    "refresh": "Refresh",
+    "kill": "Kill"
+  },
+  "context": {
+    "refresh": "Refresh",
+    "settings": "Settings"
+  },
+  "settings": {
+    "metricsTitle": "Metrics",
+    "showCpu": "CPU usage",
+    "showCpuDesc": "Show CPU usage (%)",
+    "showCpuTemp": "CPU temperature",
+    "showCpuTempDesc": "Show CPU temperature (°C)",
+    "showMemory": "Memory",
+    "showMemoryDesc": "Show memory usage (%)",
+    "showGpu": "GPU temperature",
+    "showGpuDesc": "Show GPU temperature (°C)",
+    "combined": "Combine in one capsule",
+    "combinedDesc": "Show all metrics in a single bubble instead of separate pills",
+    "showIcon": "Show icon",
+    "showIconDesc": "Display an icon before the value",
+    "iconsTitle": "Icons",
+    "change": "Change",
+    "defaultIcon": "default",
+    "resetIcon": "Reset to default",
+    "iconColor": "Icon color",
+    "textColor": "Text color",
+    "boldText": "Bold text",
+    "boldTextDesc": "Render the value in bold",
+    "showFilters": "Show filters & search",
+    "showFiltersDesc": "Display the All / User / System tabs and the search field in the panel",
+    "refreshInterval": "Refresh interval",
+    "refreshIntervalDesc": "How often the stats update",
+    "processLimit": "Process limit",
+    "processLimitDesc": "Maximum number of rows in the process list",
+    "fullTitle": "Full-screen window",
+    "windowBg": "Window background (hex)",
+    "cardBg": "Cards background (hex)",
+    "opacity": "Background opacity",
+    "opacityDesc": "Lower it (and enable blur in your compositor) for a translucent window"
+  }
+}

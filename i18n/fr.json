@@ -1,0 +1,116 @@
+{
+  "widget": {
+    "loading": "Chargement…"
+  },
+  "common": {
+    "close": "Fermer"
+  },
+  "panel": {
+    "title": "Processus",
+    "search": "Rechercher…"
+  },
+  "full": {
+    "title": "Moniteur système",
+    "swap": "Swap",
+    "network": "Réseau",
+    "disk": "Disque",
+    "diskIo": "E/S disque",
+    "read": "Lecture",
+    "write": "Écriture",
+    "mounts": "Points de montage",
+    "sysInfo": "Informations système",
+    "hostname": "Nom d'hôte",
+    "distro": "Distribution",
+    "kernel": "Noyau",
+    "arch": "Architecture",
+    "ram": "RAM",
+    "loadavg": "Charge moyenne",
+    "uptime": "Disponibilité",
+    "threads": "threads",
+    "gpuMon": "Surveillance GPU",
+    "noGpu": "Aucun GPU détecté"
+  },
+  "tab": {
+    "processes": "Processus",
+    "performance": "Performance",
+    "disks": "Disques",
+    "system": "Système"
+  },
+  "filter": {
+    "all": "Tous",
+    "user": "Utilisateur",
+    "system": "Système"
+  },
+  "detail": {
+    "command": "Commande :",
+    "ppid": "PPID :",
+    "mem": "Mém :"
+  },
+  "ctx": {
+    "copyPid": "Copier le PID",
+    "copyName": "Copier le nom",
+    "copyCommand": "Copier la commande",
+    "kill": "Tuer le processus",
+    "forceKill": "Forcer (SIGKILL)"
+  },
+  "stats": {
+    "cpu": "CPU",
+    "cputemp": "Temp CPU",
+    "memory": "Mémoire",
+    "gpu": "GPU",
+    "procs": "processus",
+    "uptime": "disponibilité"
+  },
+  "sort": {
+    "cpu": "CPU",
+    "memory": "Mémoire"
+  },
+  "col": {
+    "name": "Nom",
+    "cpu": "CPU",
+    "memory": "Mémoire",
+    "pid": "PID"
+  },
+  "action": {
+    "refresh": "Rafraîchir",
+    "kill": "Tuer"
+  },
+  "context": {
+    "refresh": "Rafraîchir",
+    "settings": "Paramètres"
+  },
+  "settings": {
+    "metricsTitle": "Métriques",
+    "showCpu": "Utilisation CPU",
+    "showCpuDesc": "Affiche l'utilisation du CPU (%)",
+    "showCpuTemp": "Température CPU",
+    "showCpuTempDesc": "Affiche la température du CPU (°C)",
+    "showMemory": "Mémoire",
+    "showMemoryDesc": "Affiche l'utilisation mémoire (%)",
+    "showGpu": "Température GPU",
+    "showGpuDesc": "Affiche la température du GPU (°C)",
+    "combined": "Regrouper en une capsule",
+    "combinedDesc": "Affiche toutes les métriques dans une seule bulle plutôt qu'en pastilles séparées",
+    "showIcon": "Afficher l'icône",
+    "showIconDesc": "Affiche une icône avant la valeur",
+    "iconsTitle": "Icônes",
+    "change": "Modifier",
+    "defaultIcon": "défaut",
+    "resetIcon": "Réinitialiser",
+    "iconColor": "Couleur de l'icône",
+    "textColor": "Couleur du texte",
+    "boldText": "Texte en gras",
+    "boldTextDesc": "Affiche la valeur en gras",
+    "showFilters": "Afficher filtres & recherche",
+    "showFiltersDesc": "Affiche les onglets Tous / Utilisateur / Système et la recherche dans le panneau",
+    "refreshInterval": "Intervalle de rafraîchissement",
+    "refreshIntervalDesc": "Fréquence de mise à jour des stats",
+    "processLimit": "Limite de processus",
+    "processLimitDesc": "Nombre maximum de lignes dans la liste",
+    "fullTitle": "Fenêtre plein écran",
+    "windowBg": "Fond de la fenêtre (hexa)",
+    "cardBg": "Fond des cartes (hexa)",
+    "opacity": "Opacité du fond",
+    "opacityDesc": "Réduis-la (et active le blur dans ton compositeur) pour une fenêtre translucide"
+  }
+}
