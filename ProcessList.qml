@@ -24,11 +24,74 @@ ColumnLayout {
 
   function _human(kb) { return pl.m ? pl.m._humanKB(kb) : "--" }
 
+  // ---- process identity: icon + friendly name from name/command ----
+  property var _rulesCache: null
+  function _rules() {
+    if (pl._rulesCache) return pl._rulesCache
+    pl._rulesCache = [
+      { re: /^\[?(kworker|kthreadd?|ksoftirqd|kswapd|kcompactd|migration|rcu_|cpuhp|irq\/|watchdog|idle_inject|scsi_|kdmflush|kintegrityd|ksmd|khugepaged|oom_reaper)/, icon: "engine", label: "" },
+      { re: /firefox|librewolf|waterfox|\bzen\b|zen-bin|mozilla/, icon: "brand-firefox", label: "Firefox" },
+      { re: /chromium|google-chrome|\bchrome\b|brave|vivaldi|\bopera\b/, icon: "brand-chrome", label: "" },
+      { re: /microsoft-edge|msedge/, icon: "brand-edge", label: "Edge" },
+      { re: /\bcode\b|vscode|code-oss|codium/, icon: "brand-vscode", label: "VS Code" },
+      { re: /nvim|neovim|\bvim\b|nano|emacs|helix|\bhx\b|micro|kak|zed/, icon: "code", label: "" },
+      { re: /kitty|ghostty|alacritty|\bfoot\b|wezterm|konsole|xterm|tilix|terminator|gnome-terminal/, icon: "terminal-2", label: "" },
+      { re: /spotify/, icon: "brand-spotify", label: "Spotify" },
+      { re: /discord|vesktop/, icon: "brand-discord", label: "Discord" },
+      { re: /telegram/, icon: "brand-telegram", label: "Telegram" },
+      { re: /steam/, icon: "brand-steam", label: "Steam" },
+      { re: /\bmpv\b|\bvlc\b/, icon: "brand-vlc", label: "" },
+      { re: /pipewire|wireplumber|pulseaudio|pavucontrol|easyeffects/, icon: "headphones", label: "" },
+      { re: /ffmpeg|gstreamer|gst-/, icon: "movie", label: "" },
+      { re: /python[0-9.]*/, icon: "brand-python", label: "" },
+      { re: /\bnode\b|nodejs|deno|\bbun\b/, icon: "brand-nodejs", label: "" },
+      { re: /cargo|rustc|rust-analyzer/, icon: "brand-rust", label: "" },
+      { re: /golang|gopls/, icon: "brand-golang", label: "" },
+      { re: /docker|containerd|podman/, icon: "brand-docker", label: "" },
+      { re: /qemu|libvirt/, icon: "box", label: "" },
+      { re: /postgres|mysqld|mariadb|redis|mongod|sqlite/, icon: "database", label: "" },
+      { re: /nginx|apache|httpd|caddy/, icon: "server", label: "" },
+      { re: /\bsshd?\b|openssh/, icon: "network", label: "" },
+      { re: /thunderbird|\bmail\b/, icon: "mail", label: "" },
+      { re: /quickshell|noctalia|niri|hyprland|\bsway\b|wayland|xwayland|\bxorg\b|gnome-shell|plasmashell/, icon: "device-desktop", label: "" },
+      { re: /systemd|dbus|polkit|\budevd?\b|logind|getty|crond?|journald|avahi|networkmanager|wpa_supplicant|gvfs|accounts-daemon/, icon: "settings", label: "" },
+      { re: /syncthing|rsync|nextcloud|dropbox/, icon: "folder", label: "" }
+    ]
+    return pl._rulesCache
+  }
+  function _matchProc(name, cmd) {
+    var h = ((name || "") + " " + (cmd || "")).toLowerCase()
+    var rs = pl._rules()
+    for (var i = 0; i < rs.length; i++) if (rs[i].re.test(h)) return rs[i]
+    return null
+  }
+  function procIcon(name, cmd) { var r = pl._matchProc(name, cmd); return r ? r.icon : "app-window" }
+  // De-truncate the kernel-truncated comm to a readable name; keep comm for kernel threads.
+  function prettyName(name, cmd) {
+    var r = pl._matchProc(name, cmd)
+    if (r && r.label) return r.label
+    var first = ((cmd || "").trim().split(/\s+/))[0] || ""
+    if (first.indexOf("/") >= 0 && first.charAt(0) !== "[") {
+      var b = first.split("/").pop().replace(/^\.+/, "").replace(/-(wrapped|bin|real)$/, "")
+      if (b) return b.charAt(0).toUpperCase() + b.slice(1)
+    }
+    return name || "?"
+  }
+
   // Reconcile procModel to match `arr` (already filtered/sorted/limited) by pid.
   // ponytail: O(n*m) scan, fine for <=100 rows; switch to a pid->index map if it grows.
   function syncModel(arr) {
     arr = arr || []
     var i, j
+    // Locked: while a row is expanded, freeze the order so the row you're reading
+    // doesn't slide away on refresh — just update values in place.
+    if (pl.expandedPid !== -1) {
+      for (i = 0; i < procModel.count; i++) {
+        var pid0 = procModel.get(i).pid
+        for (j = 0; j < arr.length; j++) if (arr[j].pid === pid0) { procModel.set(i, arr[j]); break }
+      }
+      return
+    }
     for (i = procModel.count - 1; i >= 0; i--) {
       var pid = procModel.get(i).pid
       var keep = false
@@ -45,6 +108,8 @@ ColumnLayout {
   }
   onRowsChanged: syncModel(rows)
   Component.onCompleted: syncModel(rows)
+  onExpandedPidChanged: if (expandedPid === -1) syncModel(rows)  // re-sort once the row is collapsed
+  onSortModeChanged: expandedPid = -1                            // changing sort collapses + unfreezes
 
   // ---- header ----
   RowLayout {
@@ -74,7 +139,7 @@ ColumnLayout {
         id: rowDelegate
         readonly property bool expanded: pl.expandedPid === model.pid
         readonly property real rowH: 32 * Style.uiScaleRatio
-        readonly property real detailH: 58 * Style.uiScaleRatio
+        readonly property real detailH: 80 * Style.uiScaleRatio
         width: ListView.view ? ListView.view.width : 0
         height: expanded ? rowH + detailH : rowH
         radius: Style.radiusS
@@ -87,7 +152,7 @@ ColumnLayout {
             width: parent.width; height: rowDelegate.rowH
             RowLayout {
               anchors.fill: parent; anchors.leftMargin: Style.marginS; anchors.rightMargin: Style.marginS; spacing: Style.marginS
-              NIcon { Layout.preferredWidth: 22 * Style.uiScaleRatio; icon: "cpu"; pointSize: Style.fontSizeM; color: rowMouse.containsMouse ? Color.mOnHover : Color.mOnSurfaceVariant }
+              NIcon { Layout.preferredWidth: 22 * Style.uiScaleRatio; icon: pl.procIcon(model.name, model.fullCommand); pointSize: Style.fontSizeM; color: rowMouse.containsMouse ? Color.mOnHover : Color.mOnSurfaceVariant }
               NText { Layout.fillWidth: true; text: model.name; elide: Text.ElideRight; pointSize: Style.fontSizeS; color: rowMouse.containsMouse ? Color.mOnHover : Color.mOnSurface }
               MetricPill { Layout.preferredWidth: 62 * Style.uiScaleRatio; active: pl.sortMode === "cpu"; text: (model.cpu || 0).toFixed(1) + "%" }
               MetricPill { Layout.preferredWidth: 84 * Style.uiScaleRatio; active: pl.sortMode === "memory"; text: pl._human(model.rss) }
@@ -117,6 +182,11 @@ ColumnLayout {
             width: parent.width; height: rowDelegate.detailH; visible: rowDelegate.expanded; color: "transparent"
             ColumnLayout {
               anchors.fill: parent; anchors.leftMargin: Style.marginL; anchors.rightMargin: Style.marginS; anchors.bottomMargin: Style.marginXS; spacing: Style.marginXS
+              RowLayout {
+                Layout.fillWidth: true; spacing: Style.marginXS
+                NIcon { icon: pl.procIcon(model.name, model.fullCommand); pointSize: Style.fontSizeM; color: Color.mPrimary }
+                NText { Layout.fillWidth: true; text: pl.prettyName(model.name, model.fullCommand); pointSize: Style.fontSizeS; font.weight: Style.fontWeightBold; color: Color.mOnSurface; elide: Text.ElideRight }
+              }
               RowLayout {
                 Layout.fillWidth: true; spacing: Style.marginS
                 NText { text: pl.m?.pluginApi?.tr("detail.command") ?? "Command"; pointSize: Style.fontSizeXS; color: Color.mOnSurfaceVariant }
