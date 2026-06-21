@@ -20,7 +20,6 @@ Item {
   property string sortMode: m?.panelSortMode ?? "memory"
   property string scope: "all"
   property string query: ""
-  property int expandedPid: -1
 
   property var menuProc: null
   property real menuX: 0
@@ -104,7 +103,15 @@ Item {
         NTextInput { Layout.fillWidth: true; label: ""; description: ""; inputIconName: "search"; placeholderText: pluginApi?.tr("panel.search"); text: root.query; onTextChanged: root.query = text }
       }
 
-      ProcessTable { Layout.fillWidth: true; Layout.fillHeight: true }
+      ProcessList {
+        Layout.fillWidth: true; Layout.fillHeight: true
+        m: root.m; rows: root.rows; sortMode: root.sortMode
+        onRequestSort: mode => root.sortMode = mode
+        onRowMenu: (proc, gx, gy) => {
+          var p = panelContainer.mapFromGlobal(gx, gy)
+          root.menuX = p.x; root.menuY = p.y; root.menuProc = proc
+        }
+      }
     }
 
     // Right-click context menu
@@ -131,94 +138,6 @@ Item {
   }
 
   // =========================== inline components ===========================
-
-  component ProcessTable: ColumnLayout {
-    spacing: Style.marginXS
-    RowLayout {
-      Layout.fillWidth: true; Layout.leftMargin: Style.marginS; Layout.rightMargin: Style.marginS; spacing: Style.marginS
-      Item { Layout.preferredWidth: 22 * Style.uiScaleRatio }
-      NText { Layout.fillWidth: true; text: pluginApi?.tr("col.name"); pointSize: Style.fontSizeXS; color: Color.mOnSurfaceVariant }
-      ColumnHeader { Layout.preferredWidth: 62 * Style.uiScaleRatio; modeKey: "cpu"; label: pluginApi?.tr("col.cpu") }
-      ColumnHeader { Layout.preferredWidth: 84 * Style.uiScaleRatio; modeKey: "memory"; label: pluginApi?.tr("col.memory") }
-      NText { Layout.preferredWidth: 52 * Style.uiScaleRatio; horizontalAlignment: Text.AlignRight; text: pluginApi?.tr("col.pid"); pointSize: Style.fontSizeXS; color: Color.mOnSurfaceVariant }
-      Item { Layout.preferredWidth: 24 * Style.uiScaleRatio }
-    }
-    NBox {
-      Layout.fillWidth: true; Layout.fillHeight: true
-      ListView {
-        anchors.fill: parent; anchors.margins: Style.marginXS
-        model: root.rows; spacing: 1; clip: true; cacheBuffer: 400; boundsBehavior: Flickable.StopAtBounds
-        delegate: Rectangle {
-          id: rowDelegate
-          required property var modelData
-          readonly property bool expanded: root.expandedPid === rowDelegate.modelData.pid
-          readonly property real rowH: 32 * Style.uiScaleRatio
-          readonly property real detailH: 58 * Style.uiScaleRatio
-          width: ListView.view.width
-          height: expanded ? rowH + detailH : rowH
-          radius: Style.radiusS
-          color: (rowMouse.containsMouse || expanded) ? Color.mHover : "transparent"
-          clip: true
-          Behavior on height { NumberAnimation { duration: Style.animationFast; easing.type: Easing.OutCubic } }
-          Column {
-            anchors.fill: parent; spacing: 0
-            Item {
-              width: parent.width; height: rowDelegate.rowH
-              RowLayout {
-                anchors.fill: parent; anchors.leftMargin: Style.marginS; anchors.rightMargin: Style.marginS; spacing: Style.marginS
-                NIcon { Layout.preferredWidth: 22 * Style.uiScaleRatio; icon: "cpu"; pointSize: Style.fontSizeM; color: rowMouse.containsMouse ? Color.mOnHover : Color.mOnSurfaceVariant }
-                NText { Layout.fillWidth: true; text: rowDelegate.modelData.name; elide: Text.ElideRight; pointSize: Style.fontSizeS; color: rowMouse.containsMouse ? Color.mOnHover : Color.mOnSurface }
-                MetricPill { Layout.preferredWidth: 62 * Style.uiScaleRatio; active: root.sortMode === "cpu"; text: rowDelegate.modelData.cpu.toFixed(1) + "%" }
-                MetricPill { Layout.preferredWidth: 84 * Style.uiScaleRatio; active: root.sortMode === "memory"; text: root._human(rowDelegate.modelData.rss) }
-                NText { Layout.preferredWidth: 52 * Style.uiScaleRatio; horizontalAlignment: Text.AlignRight; text: rowDelegate.modelData.pid; pointSize: Style.fontSizeXS; color: Color.mOnSurfaceVariant }
-                NIcon {
-                  Layout.preferredWidth: 24 * Style.uiScaleRatio; icon: "chevron-down"; pointSize: Style.fontSizeM
-                  color: rowMouse.containsMouse ? Color.mOnHover : Color.mOnSurfaceVariant
-                  rotation: rowDelegate.expanded ? 180 : 0
-                  Behavior on rotation { NumberAnimation { duration: Style.animationFast } }
-                }
-              }
-              MouseArea {
-                id: rowMouse
-                anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor
-                acceptedButtons: Qt.LeftButton | Qt.RightButton
-                onClicked: mouse => {
-                  if (mouse.button === Qt.RightButton) {
-                    var pt = mapToItem(panelContainer, mouse.x, mouse.y)
-                    root.menuX = pt.x; root.menuY = pt.y; root.menuProc = rowDelegate.modelData
-                  } else {
-                    root.expandedPid = rowDelegate.expanded ? -1 : rowDelegate.modelData.pid
-                  }
-                }
-              }
-            }
-            Rectangle {
-              width: parent.width; height: rowDelegate.detailH; visible: rowDelegate.expanded; color: "transparent"
-              ColumnLayout {
-                anchors.fill: parent; anchors.leftMargin: Style.marginL; anchors.rightMargin: Style.marginS; anchors.bottomMargin: Style.marginXS; spacing: Style.marginXS
-                RowLayout {
-                  Layout.fillWidth: true; spacing: Style.marginS
-                  NText { text: pluginApi?.tr("detail.command"); pointSize: Style.fontSizeXS; color: Color.mOnSurfaceVariant }
-                  NText { Layout.fillWidth: true; text: rowDelegate.modelData.fullCommand || rowDelegate.modelData.name; pointSize: Style.fontSizeXS; color: Color.mOnSurface; elide: Text.ElideRight; font.family: Settings.data.ui.fontFixed }
-                  NIconButton { baseSize: Style.baseWidgetSize * 0.62; icon: "copy"; tooltipText: pluginApi?.tr("ctx.copyCommand"); onClicked: root.m?.copyText(rowDelegate.modelData.fullCommand || rowDelegate.modelData.name) }
-                }
-                RowLayout {
-                  Layout.fillWidth: true; spacing: Style.marginS
-                  NText { text: pluginApi?.tr("detail.ppid"); pointSize: Style.fontSizeXS; color: Color.mOnSurfaceVariant }
-                  NText { text: rowDelegate.modelData.ppid; pointSize: Style.fontSizeXS; color: Color.mOnSurface }
-                  Item { Layout.preferredWidth: Style.marginL }
-                  NText { text: pluginApi?.tr("detail.mem"); pointSize: Style.fontSizeXS; color: Color.mOnSurfaceVariant }
-                  NText { text: (rowDelegate.modelData.mem || 0).toFixed(1) + "%"; pointSize: Style.fontSizeXS; color: Color.mOnSurface }
-                  Item { Layout.fillWidth: true }
-                  NText { text: rowDelegate.modelData.username; pointSize: Style.fontSizeXS; color: Color.mOnSurfaceVariant }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  }
 
   component MenuItem: Rectangle {
     id: mi
@@ -251,37 +170,11 @@ Item {
     MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: root.scope = chip.scopeKey }
   }
 
-  component ColumnHeader: Item {
-    id: ch
-    property string modeKey: "cpu"
-    property string label: ""
-    readonly property bool active: root.sortMode === ch.modeKey
-    implicitHeight: chRow.implicitHeight
-    RowLayout {
-      id: chRow
-      anchors.right: parent.right; spacing: 2
-      NText { text: ch.label; pointSize: Style.fontSizeXS; font.weight: ch.active ? Style.fontWeightBold : Style.fontWeightRegular; color: ch.active ? Color.mPrimary : Color.mOnSurfaceVariant }
-      NIcon { visible: ch.active; icon: "caret-down"; pointSize: Style.fontSizeXS; color: Color.mPrimary }
-    }
-    MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: root.sortMode = ch.modeKey }
-  }
-
-  component MetricPill: Item {
-    id: pill
-    property string text: ""
-    property bool active: false
-    implicitHeight: 20 * Style.uiScaleRatio
-    Rectangle {
-      anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter
-      width: pillText.implicitWidth + Style.marginM; height: parent.height; radius: height / 2
-      color: pill.active ? Qt.rgba(Color.mPrimary.r, Color.mPrimary.g, Color.mPrimary.b, 0.18) : Color.mSurface
-      NText { id: pillText; anchors.centerIn: parent; text: pill.text; pointSize: Style.fontSizeXS; font.weight: pill.active ? Style.fontWeightBold : Style.fontWeightRegular; color: pill.active ? Color.mPrimary : Color.mOnSurfaceVariant }
-    }
-  }
-
   component CircleGauge: Item {
     id: gauge
     property real value: 0
+    // Glide the arc to its new value instead of snapping on each 3s refresh.
+    Behavior on value { NumberAnimation { duration: 350; easing.type: Easing.OutCubic } }
     property string label: ""
     property string sublabel: ""
     property string detail: ""
