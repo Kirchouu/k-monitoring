@@ -101,6 +101,13 @@ Item {
   property var _prevCpu: null      // fallback /proc cpu delta state
   property bool _busy: false
 
+  // Heavy dgop modules (process list + disk/net rates) walk every PID and cost
+  // ~15-20x a bar-only poll. Only fetch them while a consumer view is open — the
+  // bar alone reads cpu/memory/temps. panelOpenScreen is set/cleared by the shell
+  // (PluginPanelSlot onOpened/onClosed); _fullWin.visible covers the Mod+M window.
+  readonly property bool heavyNeeded: !!((pluginApi && pluginApi.panelOpenScreen) || (_fullWin && _fullWin.visible))
+  onHeavyNeededChanged: if (heavyNeeded) refresh()  // fetch heavy modules at once on open, don't wait for the timer
+
   function _pushHistory(arr, v) {
     var a = arr.slice()
     a.push(v)
@@ -242,14 +249,19 @@ Item {
   }
 
   function _buildMeta() {
-    var mods = ["cpu", "memory", "processes", "system", "diskmounts", "disk-rate", "net-rate"]
+    var heavy = root.heavyNeeded
+    // Always-cheap set for the bar: cpu/memory/system (+ gpu temp if present).
+    var mods = ["cpu", "memory", "system"]
     if (root._gpuPciIds) mods.push("gpu-temp")
-    var c = ["dgop", "meta", "--json", "--modules", mods.join(","), "--limit", "100", "--sort", "cpu"]
+    // Expensive set, only when a consumer view is open.
+    if (heavy) mods.push("processes", "diskmounts", "disk-rate", "net-rate")
+    var c = ["dgop", "meta", "--json", "--modules", mods.join(",")]
+    if (heavy) { c.push("--limit", "100", "--sort", "cpu") }
     if (root._gpuPciIds) { c.push("--gpu-pci-ids", root._gpuPciIds) }
     if (root._cpuCursor) { c.push("--cpu-cursor", root._cpuCursor) }
-    if (root._procCursor) { c.push("--proc-cursor", root._procCursor) }
-    if (root._netCursor) { c.push("--net-rate-cursor", root._netCursor) }
-    if (root._diskCursor) { c.push("--disk-rate-cursor", root._diskCursor) }
+    if (heavy && root._procCursor) { c.push("--proc-cursor", root._procCursor) }
+    if (heavy && root._netCursor) { c.push("--net-rate-cursor", root._netCursor) }
+    if (heavy && root._diskCursor) { c.push("--disk-rate-cursor", root._diskCursor) }
     return c
   }
 
