@@ -448,11 +448,6 @@ Item {
 
   // =================== helpers ===================
 
-  // Sorted copy of the process list (no re-fetch).
-  function sortedProcesses(mode, limit) {
-    return filteredProcesses(mode, "all", "", limit)
-  }
-
   // Filter (scope: "all" | "user" | "system") + search + sort, no re-fetch.
   function filteredProcesses(mode, scope, query, limit) {
     var arr = processes.slice()
