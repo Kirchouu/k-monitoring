@@ -5,7 +5,7 @@
   "minNoctaliaVersion": "4.6.0",
   "author": "kirchou",
   "license": "MIT",
-  "repository": "",
+  "repository": "https://github.com/Kirchouu/k-monitoring",
   "description": "Bar widget showing CPU / memory usage or GPU temperature. Click to open a process list panel with CPU/Mem/GPU gauges. Uses dgop (same backend as DankMaterialShell) for temps and accurate stats, with a /proc fallback if dgop is missing. Add it multiple times (Memory, CPU, GPU) for several widgets.",
   "tags": ["Bar", "Panel", "System"],
   "entryPoints": {
